@@ -1,31 +1,51 @@
+// controllers/clothingItems.js
+
 const ClothingItem = require("../models/clothingItem");
-const { CREATED, SERVER_ERROR, SUCCESS } = require("../utils/errors");
+const {
+  CREATED,
+  SERVER_ERROR,
+  SUCCESS,
+  NOT_FOUND,
+  BAD_REQUEST, // Make sure to import all needed codes
+} = require("../utils/errors");
 
+//
+// --- ADDED BACK ---
+// CREATE a new item
+//
 const createItem = (req, res) => {
-  // console.log("Request body:", req.body); // Add this line to debug
-
   const { name, weather, imageUrl, owner } = req.body;
 
-  ClothingItem.create({ name, weather, imageUrl, owner }) // changed from URL to Url
+  ClothingItem.create({ name, weather, imageUrl, owner })
     .then((item) => {
-      // console.log(item);  // Optional: log the created item for debugging
       res.status(CREATED).send({ data: item });
     })
     .catch((err) => {
       console.error(err);
+      // You can add validation error checking here too
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: err.message });
+      }
       res.status(SERVER_ERROR).send({ message: err.message });
     });
 };
 
+//
+// --- ADDED BACK ---
+// GET all items
+//
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(SUCCESS).send(items))
     .catch((err) => {
-      // console.error(err); // Uncomment this line to log the error for debugging
+      console.error(err);
       res.status(SERVER_ERROR).send({ message: "Error from getItems", err });
     });
 };
 
+//
+// --- YOUR CORRECTLY UPDATED FUNCTION ---
+//
 const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
@@ -36,21 +56,36 @@ const updateItem = (req, res) => {
       res.status(SUCCESS).send({ data: item });
     })
     .catch((err) => {
-      // console.error(err); // Uncomment this line to log the error for debugging
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
       res.status(SERVER_ERROR).send({ message: "Error from updateItem", err });
     });
 };
 
+//
+// --- YOUR CORRECTLY UPDATED FUNCTION ---
+//
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  // console.log("Deleting item with ID:", itemId); // Debugging line
+
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
     .then((item) => {
       res.status(SUCCESS).send({ data: item });
     })
     .catch((err) => {
-      // console.error(err); // Uncomment this line to log the error for debugging
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
       res.status(SERVER_ERROR).send({ message: "Error from deleteItem", err });
     });
 };

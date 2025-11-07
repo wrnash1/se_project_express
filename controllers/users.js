@@ -1,10 +1,21 @@
 // CONTROLLERS/users.js
 const User = require("../models/user");
 // import error codes
+
+// --- FIX 1: REMOVE THESE ---
+// const {
+//   NOT_FOUND_ERROR,
+//   VALIDATION_ERROR,
+//   CAST_ERROR,
+//   SERVER_ERROR,
+//   SUCCESS,
+//   CREATED,
+// } = require("../utils/errors");
+
+// --- FIX 1: ADD THESE INSTEAD ---
 const {
-  NOT_FOUND_ERROR,
-  VALIDATION_ERROR,
-  CAST_ERROR,
+  NOT_FOUND,
+  BAD_REQUEST, // Use this for Validation and Cast errors
   SERVER_ERROR,
   SUCCESS,
   CREATED,
@@ -34,7 +45,8 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(VALIDATION_ERROR).send({ message: err.message });
+        // --- FIX 2: Use BAD_REQUEST ---
+        return res.status(BAD_REQUEST).send({ message: err.message });
       }
       return res.status(SERVER_ERROR).send({ message: err.message });
     });
@@ -51,10 +63,12 @@ const getUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND_ERROR).send({ message: "User not found" });
+        // --- FIX 3: Use NOT_FOUND ---
+        return res.status(NOT_FOUND).send({ message: "User not found" });
       }
       if (err.name === "CastError") {
-        return res.status(CAST_ERROR).send({ message: "Invalid user ID" });
+        // --- FIX 4: Use BAD_REQUEST ---
+        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
       return res.status(SERVER_ERROR).send({ message: err.message });
     });
